@@ -1,0 +1,7 @@
+motd: Server is sleeping - join to wake # Description when the server is asleep
+idleTimeoutSeconds: 30 # Time of inactivity (no players online) before server sleeps
+useWhiteListJson: true # Whether to use whitelist.json for wake permissions
+wakeWhiteList: [] # List of usernames allowed to wake the server (if useWhiteListJson is false)
+sleepingIcon: sleeping.png # Icon to show when server is asleep (Optional)
+serverVersion: 1.21.9 # Minecraft server version
+serverJarPath: server.jar # Path to the Minecraft server JAR file
