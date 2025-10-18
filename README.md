@@ -19,7 +19,7 @@ Follow these steps to set up MCServerConservationalist:
 
 1. **Download the files**
 
-   - `mcmerged.exe` → The compiled server manager.
+   - `MConservationalist.exe` → The compiled server manager, select the correct platform from "builds" folder.
    - `MCServerConservationalist.yaml` → Configuration file.
    - (Optional) `sleeping.png` → 64x64 server icon displayed when the server is asleep.
 
@@ -30,7 +30,7 @@ Follow these steps to set up MCServerConservationalist:
 
 3. **Copy files into the folder**
 
-   - Move `mcmerged.exe` and `MCServerConservationalist.yaml` into this server folder.
+   - Move `MConservationalist.exe` and `MCServerConservationalist.yaml` into this server folder.
    - Add `sleeping.png` if you want a custom sleeping icon.
 
 4. **Configure the YAML**
@@ -41,8 +41,8 @@ Follow these steps to set up MCServerConservationalist:
 
 5. **Run the server manager**
 
-   - On Windows: double-click `mcmerged.exe` or run it in a terminal.
-   - On Linux (if using Wine or similar): run `mcmerged.exe` with the proper environment.
+   - On Windows: double-click `MConservationalist.exe` or run it in a terminal.
+   - On Linux (if using Wine or similar): run `MConservationalist.exe` with the proper environment.
    - The program will start listening for connections and manage server wake/sleep automatically.
 
 6. **Verify**
@@ -60,7 +60,7 @@ Follow these steps to set up MCServerConservationalist:
 | File                             | Purpose                                                                          |
 | -------------------------------- | -------------------------------------------------------------------------------- |
 | `MCServerConservationalist.yaml` | Main configuration file for the program.                                         |
-| `mcmerged.exe`                   | Compiled executable to run the server manager. Place this in your server folder. |
+| `MConservationalist.exe`         | Compiled executable to run the server manager. Place this in your server folder. |
 | `server.jar`                     | Your Minecraft server JAR file.                                                  |
 | `sleeping.png`                   | Optional icon to display when the server is asleep.                              |
 
