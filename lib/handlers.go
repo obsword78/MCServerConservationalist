@@ -116,7 +116,10 @@ func startMinecraftServer(jarPath, ram string, state *ProgramState) error {
             fmt.Println("Minecraft server stopped gracefully")
         }
         atomic.StoreInt32(state.ServerRunning, 0)
-		os.Exit(cmd.ProcessState.ExitCode())
+
+		if cmd.ProcessState.ExitCode() != 0 {
+			os.Exit(cmd.ProcessState.ExitCode())
+		}
     }()
 
     return nil

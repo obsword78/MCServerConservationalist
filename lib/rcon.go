@@ -33,41 +33,46 @@ func GetPlayerCountRCON(addr, password string) int {
 	defer conn.Close()
 
 	if !rconAuth(conn, password) {
+		fmt.Println("RCON auth failed")
 		return 0
 	}
 
 	out := rconCommand(conn, "list")
 	var count int
 	fmt.Sscanf(out, "There are %d/", &count)
+	fmt.Println("Current player count:", count)
 	return count
 }
 
 func rconAuth(conn net.Conn, password string) bool {
-	return rconSend(conn, 3, 1, password) != ""
+    _, respID := rconSend(conn, 3, 1, password)
+    return respID == 1
 }
 
 func rconCommand(conn net.Conn, cmd string) string {
-	return rconSend(conn, 2, 2, cmd)
+    out, _ := rconSend(conn, 2, 2, cmd)
+    return out
 }
 
-func rconSend(conn net.Conn, kind, id int32, payload string) string {
-	length := int32(len(payload) + 10)
-	buf := new(bytes.Buffer)
-	binary.Write(buf, binary.LittleEndian, length)
-	binary.Write(buf, binary.LittleEndian, id)
-	binary.Write(buf, binary.LittleEndian, kind)
-	buf.WriteString(payload)
-	buf.WriteByte(0)
-	buf.WriteByte(0)
-	conn.Write(buf.Bytes())
+func rconSend(conn net.Conn, kind, id int32, payload string) (string, int32) {
+    length := int32(len(payload) + 9)
+    buf := new(bytes.Buffer)
+    binary.Write(buf, binary.LittleEndian, length)
+    binary.Write(buf, binary.LittleEndian, id)
+    binary.Write(buf, binary.LittleEndian, kind)
+    buf.WriteString(payload)
+    buf.WriteByte(0)
+    conn.Write(buf.Bytes())
 
-	resp := make([]byte, 4096)
-	n, _ := conn.Read(resp)
-	resp = resp[:n]
+    resp := make([]byte, 4096)
+    n, _ := conn.Read(resp)
+    resp = resp[:n]
 
-	if n < 12 {
-		return ""
-	}
 
-	return strings.TrimRight(string(resp[12:]), "\x00")
+    if n < 12 {
+        return "", 0
+    }
+
+    respID := int32(binary.LittleEndian.Uint32(resp[4:8]))
+    return strings.TrimRight(string(resp[12:]), "\x00"), respID
 }
