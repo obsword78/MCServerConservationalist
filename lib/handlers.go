@@ -9,7 +9,6 @@ import (
 	"image"
 	"image/png"
 	"io"
-	"net"
 	"os"
 	"os/exec"
 	"sync/atomic"
@@ -18,36 +17,22 @@ import (
 )
 
 func HandleStatus(conn io.ReadWriter, srvProps *ServerProps, config *YAMLConfig) error {
-	r := bufio.NewReader(conn)
-
-	_, err := readVarInt(r)
-	if err != nil {
-		return err
-	}
-	packetID, _ := readVarInt(r)
-	if packetID != 0x00 {
-		return fmt.Errorf("unexpected status request packet ID: %d", packetID)
-	}
-
+	// 3️⃣ Build JSON response
 	response := map[string]interface{}{
 		"version": map[string]interface{}{
-			"name":     fmt.Sprintf("%d", srvProps.ServerPort),
-			"protocol": 773,
+			"name":     config.ServerVersion,
+			"protocol": 767,                  // 1.21.1 protocol version (adjust if needed)
 		},
 		"description": map[string]interface{}{
 			"text": config.MOTD,
 		},
 	}
-	
+
 	imgFile, err := os.Open(config.SleepingIcon)
-	if err != nil {
-		response["favicon"] = "" 
-	} else {
+	if err == nil {
 		defer imgFile.Close()
 		img, _, err := image.Decode(imgFile)
-		if err != nil {
-			response["favicon"] = ""
-		} else {
+		if err == nil {
 			resized := imaging.Resize(img, 64, 64, imaging.Lanczos)
 			var buf bytes.Buffer
 			png.Encode(&buf, resized)
@@ -55,47 +40,49 @@ func HandleStatus(conn io.ReadWriter, srvProps *ServerProps, config *YAMLConfig)
 			response["favicon"] = "data:image/png;base64," + b64
 		}
 	}
-	
+
 	data, _ := json.Marshal(response)
 
-	var buf bytes.Buffer
-	WriteVarInt(&buf, 0x00)            
-	WriteVarInt(&buf, int32(len(data)))
-	buf.Write(data)
+	// 5️⃣ Write Response Packet (ID 0x00)
+	var pkt bytes.Buffer
+	WriteVarInt(&pkt, 0x00)           // Packet ID
+	WriteVarInt(&pkt, int32(len(data))) // Length of JSON string
+	pkt.Write(data)
 
 	var final bytes.Buffer
-	WriteVarInt(&final, int32(buf.Len()))
-	final.Write(buf.Bytes())
+	WriteVarInt(&final, int32(pkt.Len())) // Total packet length
+	final.Write(pkt.Bytes())
 
-	_, err = conn.Write(final.Bytes())
-	if err != nil {
-		return err
+	if _, err := conn.Write(final.Bytes()); err != nil {
+		return fmt.Errorf("failed to write status response: %w", err)
 	}
 
 	return nil
 }
 
-func readLoginStart(r io.Reader) (string, error) {
-    length, err := readVarInt(r)
-    if err != nil {
-        return "", err
-    }
-    packetData := make([]byte, length)
-    if _, err := io.ReadFull(r, packetData); err != nil {
-        return "", err
-    }
+func readLoginStart(r *bufio.Reader) (string, error) {
+	length, err := readVarInt(r)
+	if err != nil {
+		return "", err
+	}
 
-    buf := bytes.NewReader(packetData)
-    packetID, _ := readVarInt(buf)
-    if packetID != 0x00 {
-        return "", fmt.Errorf("unexpected login packet ID: %d", packetID)
-    }
+	packetData := make([]byte, length)
+	if _, err := io.ReadFull(r, packetData); err != nil {
+		return "", err
+	}
 
-    username, _ := readString(buf)
-    return username, nil
+	buf := bytes.NewReader(packetData)
+	packetID, _ := readVarInt(buf)
+	if packetID != 0x00 {
+		return "", fmt.Errorf("unexpected login packet ID: %d", packetID)
+	}
+
+	username, _ := readString(buf)
+	return username, nil
 }
 
-func sendLoginMessage(conn net.Conn, msg string) error {
+
+func sendLoginMessage(conn io.Writer, msg string) error {
     jsonMsg := fmt.Sprintf(`{"text":"%s"}`, msg)
     msgBytes := []byte(jsonMsg)
 
@@ -119,19 +106,18 @@ func startMinecraftServer(jarPath string, ram string) error {
     return cmd.Start()
 }
 
+func HandleLogin(r *bufio.Reader, w io.Writer, yamlCfg *YAMLConfig, serverRunningPointer *int32) error {
+	username, err := readLoginStart(r) // <- uses the same buffered reader
+	if err != nil {
+		return fmt.Errorf("login error: %v", err)
+	}
 
-func HandleLogin(conn net.Conn, yamlCfg *YAMLConfig, serverRunningPointer *int32) error {
-    username, err := readLoginStart(bufio.NewReader(conn))
-    if err != nil {
-        return fmt.Errorf("login error: %v", err)
-    }
-
-    fmt.Println("Player attempting login:", username)
+	fmt.Println("Player attempting login:", username)
     
 	if !CanWake(username, yamlCfg) {
-		return sendLoginMessage(conn, "You are not whitelisted to wake the server!")
+		return sendLoginMessage(w, "You are not whitelisted to wake the server!")
 	} else {
-		sendLoginMessage(conn, "Server is starting, please reconnect in a moment!")
+		sendLoginMessage(w, "Server is starting, please reconnect in a moment!")
 		go func() {
 			if err := startMinecraftServer("server.jar", "4G"); err != nil {
 				fmt.Println("Failed to start server:", err)
@@ -142,4 +128,5 @@ func HandleLogin(conn net.Conn, yamlCfg *YAMLConfig, serverRunningPointer *int32
 
 	return nil
 }
+
 
