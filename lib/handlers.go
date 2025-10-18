@@ -81,7 +81,6 @@ func readLoginStart(r *bufio.Reader) (string, error) {
 	return username, nil
 }
 
-
 func sendLoginMessage(conn io.Writer, msg string) error {
     jsonMsg := fmt.Sprintf(`{"text":"%s"}`, msg)
     msgBytes := []byte(jsonMsg)
@@ -99,34 +98,54 @@ func sendLoginMessage(conn io.Writer, msg string) error {
     return err
 }
 
-func startMinecraftServer(jarPath string, ram string) error {
+func startMinecraftServer(jarPath, ram string, state *ProgramState) error {
     cmd := exec.Command("java", "-Xmx"+ram, "-jar", jarPath, "--nogui")
     cmd.Stdout = os.Stdout
     cmd.Stderr = os.Stderr
-    return cmd.Start()
+
+    state.MinecraftProcess = cmd
+    if err := cmd.Start(); err != nil {
+        return err
+    }
+
+    go func() {
+        err := cmd.Wait()
+        if err != nil {
+            fmt.Println("Minecraft server crashed:", err)
+        } else {
+            fmt.Println("Minecraft server stopped gracefully")
+        }
+        atomic.StoreInt32(state.ServerRunning, 0)
+		os.Exit(cmd.ProcessState.ExitCode())
+    }()
+
+    return nil
 }
 
-func HandleLogin(r *bufio.Reader, w io.Writer, yamlCfg *YAMLConfig, serverRunningPointer *int32) error {
-	username, err := readLoginStart(r) // <- uses the same buffered reader
-	if err != nil {
-		return fmt.Errorf("login error: %v", err)
-	}
+func HandleLogin(state *ProgramState, r *bufio.Reader, w io.Writer) error {
+    username, err := readLoginStart(r)
+    if err != nil {
+        return fmt.Errorf("login error: %v", err)
+    }
 
-	fmt.Println("Player attempting login:", username)
-    
-	if !CanWake(username, yamlCfg) {
-		return sendLoginMessage(w, "You are not whitelisted to wake the server!")
-	} else {
-		sendLoginMessage(w, "Server is starting, please reconnect in a moment!")
-		go func() {
-			if err := startMinecraftServer("server.jar", "4G"); err != nil {
-				fmt.Println("Failed to start server:", err)
-			}
-			atomic.StoreInt32(serverRunningPointer, 1)
-		}()
-	}
+    if !CanWake(username, state.YAMLConfig) {
+        return sendLoginMessage(w, "You are not whitelisted!")
+    }
 
-	return nil
+    sendLoginMessage(w, "Server starting… please reconnect in a moment")
+
+    go func() {
+        if err := startMinecraftServer("server.jar", "4G", state); err != nil {
+            fmt.Println("Failed to start server:", err)
+        }
+        // Signal main that server has started
+        atomic.StoreInt32(state.ServerRunning, 1)
+        select {
+        case state.ServerStarted <- struct{}{}:
+        default:
+        }
+    }()
+
+    return nil
 }
-
 
