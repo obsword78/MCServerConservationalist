@@ -4,6 +4,12 @@
 
 ---
 
+## Practicality
+
+**MCServerConservationalist** has only been tested for the following versions:
+
+- 1.21.9
+
 ## Features
 
 - **Automatic Server Wake**: The server starts when a player on the whitelist attempts to log in.
