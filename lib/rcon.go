@@ -9,39 +9,36 @@ import (
 	"time"
 )
 
-func SendRCONStop(addr, password string) {
-	conn, err := net.DialTimeout("tcp", addr, 2*time.Second)
-	if err != nil {
-		fmt.Println("RCON connect failed:", err)
-		return
-	}
-	defer conn.Close()
-
-	if !rconAuth(conn, password) {
-		fmt.Println("RCON auth failed")
-		return
-	}
-
-	rconCommand(conn, "stop")
+type RCONClient struct {
+	conn net.Conn
 }
 
-func GetPlayerCountRCON(addr, password string) int {
+func NewRCONClient(addr, password string) (*RCONClient, error) {
 	conn, err := net.DialTimeout("tcp", addr, 2*time.Second)
 	if err != nil {
-		return 0
+		return nil, err
 	}
-	defer conn.Close()
-
 	if !rconAuth(conn, password) {
-		fmt.Println("RCON auth failed")
-		return 0
+		conn.Close()
+		return nil, fmt.Errorf("RCON auth failed")
 	}
+	return &RCONClient{conn: conn}, nil
+}
 
-	out := rconCommand(conn, "list")
+func (r *RCONClient) GetPlayerCount() int {
+	out := rconCommand(r.conn, "list")
 	var count int
 	fmt.Sscanf(out, "There are %d/", &count)
 	fmt.Println("Current player count:", count)
 	return count
+}
+
+func (r *RCONClient) StopServer() {
+	rconCommand(r.conn, "stop")
+}
+
+func (r *RCONClient) Close() {
+	r.conn.Close()
 }
 
 func rconAuth(conn net.Conn, password string) bool {
