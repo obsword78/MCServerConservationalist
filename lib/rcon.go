@@ -16,6 +16,7 @@ type RCONClient struct {
 func NewRCONClient(addr, password string) (*RCONClient, error) {
 	conn, err := net.DialTimeout("tcp", addr, 2*time.Second)
 	if err != nil {
+		conn.Close()
 		return nil, err
 	}
 	if !rconAuth(conn, password) {
