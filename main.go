@@ -65,7 +65,14 @@ func WaitForValidTrigger(state *ProgramState) {
     }
     state.PortListener = ln
 
-    fmt.Println("Waiting for players to trigger server…")
+    for {
+        if atomic.LoadInt32(state.ServerRunning) == 0 {
+            break
+        }
+        time.Sleep(time.Second)
+    }
+
+    fmt.Println("Server is sleeping, waiting for players to trigger server…")
     for {
         if atomic.LoadInt32(state.ServerRunning) == 1 {
             return
@@ -106,11 +113,6 @@ func MonitorIdle(ste *ProgramState) {
             idleSeconds = 0
         }
         time.Sleep(time.Second)
-
-        if (atomic.LoadInt32(ste.ServerRunning) == 0) {
-            fmt.Println("Server is not running → stopping idle monitor")
-            return
-        }
     }
 }
 
