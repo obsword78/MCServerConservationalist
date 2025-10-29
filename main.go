@@ -4,15 +4,19 @@ import (
 	"bufio"
 	"fmt"
 	"net"
+	"os"
+	"os/signal"
 	"sync/atomic"
+	"syscall"
 	"time"
 
 	"github.com/obsword78/MCServerConservationalist/lib"
 )
-
 type ProgramState = lib.ProgramState
 
 func main() {
+    c := make(chan os.Signal, 1)
+    signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	state := &ProgramState{
         YAMLConfig:  lib.LoadYAMLConfig("MCServerConservationalist.yaml"),
         ServerProps: lib.LoadServerProps("server.properties"),
@@ -20,14 +24,35 @@ func main() {
     }
     atomic.StoreInt32(state.ServerRunning, 0)
 
+    go func() {
+        <-c
+        fmt.Println("Received interrupt signal, exiting connections...")
+
+        if state.PortListener != nil {
+            state.PortListener.Close()
+            state.PortListener = nil
+        }
+        if state.RCONClient != nil {
+            state.RCONClient.Close()
+            state.RCONClient = nil
+        }
+        
+        atomic.StoreInt32(state.ServerRunning, 0)
+
+        os.Exit(0)
+    }()
+
 	for {
 		state.ServerStarted = make(chan struct{})
 
 		go WaitForValidTrigger(state)
 
 		<-state.ServerStarted
-		fmt.Println("Server start triggered → stopping listener")
+
 		MonitorIdle(state)
+
+        state.RCONClient.Close()
+        state.RCONClient = nil
 	}
 }
 
@@ -38,12 +63,12 @@ func WaitForValidTrigger(state *ProgramState) {
         close(state.ServerStarted)
         return
     }
-    defer ln.Close()
+    state.PortListener = ln
 
     fmt.Println("Waiting for players to trigger server…")
     for {
         if atomic.LoadInt32(state.ServerRunning) == 1 {
-            return // stop accepting once server started
+            return
         }
 
         conn, err := ln.Accept()
@@ -61,27 +86,32 @@ func WaitForValidTrigger(state *ProgramState) {
 
 
 func MonitorIdle(ste *ProgramState) {
-	idleSeconds := 0
-	for {
-		count := lib.GetPlayerCountRCON(fmt.Sprintf("localhost:%d", ste.ServerProps.RconPort), ste.ServerProps.RconPassword)
-		if count <= 0 {
-			idleSeconds++
-			if idleSeconds >= ste.YAMLConfig.IdleTimeoutSeconds {
-				fmt.Println("Idle timeout reached → stopping server")
-				lib.SendRCONStop(fmt.Sprintf("localhost:%d", ste.ServerProps.RconPort), ste.ServerProps.RconPassword)
-				atomic.StoreInt32(ste.ServerRunning, 0)
-				break
-			}
-		} else {
-			idleSeconds = 0
-		}
-		time.Sleep(time.Second)
+    rconClient, err := lib.NewRCONClient(fmt.Sprintf("localhost:%d", ste.ServerProps.RconPort), ste.ServerProps.RconPassword)
+    if err != nil {
+        fmt.Println("RCON connection error:", err)
+        return
+    }
 
-		if (atomic.LoadInt32(ste.ServerRunning) == 0) {
-			fmt.Println("Server is not running → stopping idle monitor")
-			return
-		}
-	}
+    ste.RCONClient = rconClient
+    idleSeconds := 0
+    for {
+        if ste.RCONClient.GetPlayerCount() == 0 {
+            idleSeconds++
+            if idleSeconds >= ste.YAMLConfig.IdleTimeoutSeconds {
+                fmt.Println("Idle timeout reached → stopping server")
+                ste.RCONClient.StopServer()
+                break
+            }
+        } else {
+            idleSeconds = 0
+        }
+        time.Sleep(time.Second)
+
+        if (atomic.LoadInt32(ste.ServerRunning) == 0) {
+            fmt.Println("Server is not running → stopping idle monitor")
+            return
+        }
+    }
 }
 
 func handleConnection(state *ProgramState, conn net.Conn) {
