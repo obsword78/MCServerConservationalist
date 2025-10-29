@@ -133,9 +133,9 @@ func startMinecraftServer(jarPath, ram string, state *ProgramState) error {
 			conn.Close()
 			break
 		}
-		fmt.Println("Waiting for server...")
 		time.Sleep(time.Second)
 	}
+	
 
     return nil
 }

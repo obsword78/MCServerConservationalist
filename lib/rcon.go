@@ -29,7 +29,6 @@ func (r *RCONClient) GetPlayerCount() int {
 	out := rconCommand(r.conn, "list")
 	var count int
 	fmt.Sscanf(out, "There are %d/", &count)
-	fmt.Println("Current player count:", count)
 	return count
 }
 
