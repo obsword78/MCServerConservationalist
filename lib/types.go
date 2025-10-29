@@ -1,6 +1,9 @@
 package lib
 
-import "os/exec"
+import (
+	"net"
+	"os/exec"
+)
 
 type ProgramState struct {
     YAMLConfig      *YAMLConfig
@@ -8,4 +11,7 @@ type ProgramState struct {
     ServerRunning   *int32        
 	ServerStarted   chan struct{}
     MinecraftProcess *exec.Cmd
+
+    PortListener   net.Listener
+    RCONClient     *RCONClient
 }
