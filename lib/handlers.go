@@ -9,9 +9,12 @@ import (
 	"image"
 	"image/png"
 	"io"
+	"net"
 	"os"
 	"os/exec"
 	"sync/atomic"
+	"syscall"
+	"time"
 
 	"github.com/disintegration/imaging"
 )
@@ -118,9 +121,21 @@ func startMinecraftServer(jarPath, ram string, state *ProgramState) error {
         atomic.StoreInt32(state.ServerRunning, 0)
 
 		if cmd.ProcessState.ExitCode() != 0 {
-			os.Exit(cmd.ProcessState.ExitCode())
+			p, _ := os.FindProcess(os.Getpid())
+   			p.Signal(syscall.SIGINT)
 		}
     }()
+
+	for {
+		conn, err := net.DialTimeout("tcp", fmt.Sprintf("localhost:%d", state.ServerProps.RconPort), 2*time.Second)
+		if err == nil {
+			fmt.Println("Server is ready!")
+			conn.Close()
+			break
+		}
+		fmt.Println("Waiting for server...")
+		time.Sleep(time.Second)
+	}
 
     return nil
 }
@@ -141,8 +156,12 @@ func HandleLogin(state *ProgramState, r *bufio.Reader, w io.Writer) error {
         if err := startMinecraftServer("server.jar", "4G", state); err != nil {
             fmt.Println("Failed to start server:", err)
         }
-        // Signal main that server has started
         atomic.StoreInt32(state.ServerRunning, 1)
+
+		if state.PortListener != nil {
+			state.PortListener.Close()
+			state.PortListener = nil
+		}
         select {
         case state.ServerStarted <- struct{}{}:
         default:
