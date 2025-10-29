@@ -4,7 +4,7 @@
 
 ---
 
-## Practicality
+## Availability
 
 **MCServerConservationalist** has only been tested for the following versions:
 
@@ -19,15 +19,21 @@
 
 ---
 
+## Pre-requisites
+
+### ⚠️ IMPORTANT ⚠️
+
+Remember to set `enable-rcon` to `true` & `rcon-port` to `25575` (recommended) in your `server.properties`. This is because MCServerConservationalist uses **RCON commands** to stop the server.
+
 ## Installation
 
 Follow these steps to set up MCServerConservationalist:
 
 1. **Download the files**
 
-   - `MConservationalist.exe` → The compiled server manager, select the correct platform from "builds" folder.
-   - `MCServerConservationalist.yaml` → Configuration file.
-   - (Optional) `sleeping.png` → 64x64 server icon displayed when the server is asleep.
+   - `MConservationalist.exe` → The compiled server manager, select the correct platform from [builds](builds) folder.
+   - [`MCServerConservationalist.yaml`](MCServerConservationalist.yaml) → Configuration file.
+   - (Optional) [`sleeping.png`](sleeping.png) → 64x64 server icon displayed when the server is asleep.
 
 2. **Create a server folder**
 
@@ -39,7 +45,7 @@ Follow these steps to set up MCServerConservationalist:
    - Move `MConservationalist.exe` and `MCServerConservationalist.yaml` into this server folder.
    - Add `sleeping.png` if you want a custom sleeping icon.
 
-4. **Configure the YAML**
+4. **Configure the [YAML](MCServerConservationalist.yaml)**
 
    - Open `MCServerConservationalist.yaml` in a text editor.
    - Update settings such as `motd`, `idleTimeoutSeconds`, `serverJarPath`, and whitelist options.
@@ -57,22 +63,22 @@ Follow these steps to set up MCServerConservationalist:
 
 ---
 
-**Tip:** Keep all files in the same folder to avoid path issues. Do not rename the server JAR unless you update `serverJarPath` in the YAML.
+**Tip:** Keep all files in the same folder to avoid path issues. Do not rename the server JAR unless you update `serverJarPath` in the [YAML](MCServerConservationalist.yaml).
 
 ---
 
 ## Files To Put In Your Minecraft Server Folder
 
-| File                             | Purpose                                                                          |
-| -------------------------------- | -------------------------------------------------------------------------------- |
-| `MCServerConservationalist.yaml` | Main configuration file for the program.                                         |
-| `MConservationalist.exe`         | Compiled executable to run the server manager. Place this in your server folder. |
-| `server.jar`                     | Your Minecraft server JAR file.                                                  |
-| `sleeping.png`                   | Optional icon to display when the server is asleep.                              |
+| File                                                               | Purpose                                                                          |
+| ------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
+| [`MCServerConservationalist.yaml`](MCServerConservationalist.yaml) | Main configuration file for the program.                                         |
+| `MConservationalist.exe`                                           | Compiled executable to run the server manager. Place this in your server folder. |
+| `server.jar`                                                       | Your Minecraft server JAR file.                                                  |
+| [`sleeping.png`](sleeping.png)                                     | Optional icon to display when the server is asleep.                              |
 
 ---
 
-## Configuration (`MCServerConservationalist.yaml`)
+## [Configuration](MCServerConservationalist.yaml)
 
 ```yaml
 motd: Server is sleeping - join to wake # Message shown when the server is asleep
@@ -83,3 +89,13 @@ sleepingIcon: sleeping.png # Optional icon to display when server is asleep
 serverVersion: 1.21.9 # Minecraft server version
 serverJarPath: server.jar # Path to your server JAR
 ```
+
+## Issues
+
+If you encounter any problems with the program, please file an issue in the `Issues` tab at the top of this github page. Please be specific as how you're encountering said problem.
+
+Also mention the faulty version number in the provided `Discussions` tab. `Discussions` → `General` → `Report Server Version Availability`. You're welcome to say what version is **NOT** faulty as well.
+
+---
+
+Thank you for using **MCServerConservationalist**.
