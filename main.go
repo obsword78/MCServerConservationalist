@@ -102,7 +102,7 @@ func MonitorIdle(ste *ProgramState) {
     ste.RCONClient = rconClient
     idleSeconds := 0
     for {
-        if ste.RCONClient.GetPlayerCount() == 0 {
+        if ste.RCONClient.GetPlayerCount() == 0  {
             idleSeconds++
             if idleSeconds >= ste.YAMLConfig.IdleTimeoutSeconds {
                 fmt.Println("Idle timeout reached → stopping server")
