@@ -113,6 +113,10 @@ func MonitorIdle(ste *ProgramState) {
             idleSeconds = 0
         }
         time.Sleep(time.Second)
+        if atomic.LoadInt32(ste.ServerRunning) == 0 {
+            fmt.Println("Server stopped manually → ending idle monitor")
+            break
+        }
     }
 }
 
