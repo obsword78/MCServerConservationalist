@@ -4,6 +4,12 @@
 
 ---
 
+## Tutorial Video
+
+[Video link](https://www.youtube.com/watch?v=jJmL9wqSiWA)
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/jJmL9wqSiWA?si=JBkoI5WsqHVTl_Xk" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
 ## Availability
 
 **MCServerConservationalist** has only been tested for the following versions:
