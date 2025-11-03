@@ -6,9 +6,7 @@
 
 ## Tutorial Video
 
-[Video link](https://www.youtube.com/watch?v=jJmL9wqSiWA)
-
-<iframe width="560" height="315" src="https://www.youtube.com/embed/jJmL9wqSiWA?si=JBkoI5WsqHVTl_Xk" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+[![Watch the video](https://img.youtube.com/vi/jJmL9wqSiWA/hqdefault.jpg)](https://www.youtube.com/embed/jJmL9wqSiWA)
 
 ## Availability
 
