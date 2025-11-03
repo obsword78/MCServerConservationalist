@@ -58,3 +58,8 @@ func LoadServerProps(path string) *ServerProps {
 	}	
 	return props
 }
+
+func CheckRCONEnabled(path string) bool {
+	p := properties.MustLoadFile(path, properties.UTF8)
+	return p.GetBool("enable-rcon", false)
+}

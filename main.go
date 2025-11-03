@@ -23,6 +23,11 @@ func main() {
     }
     exeDir := filepath.Dir(exePath)
 
+    if !lib.CheckRCONEnabled(filepath.Join(exeDir, "server.properties")) {
+        fmt.Println("\033[1;31mRCON is not enabled in server.properties! Please enable RCON to use MCServerConservationalist. (set enable-rcon=true)\033[0m")
+        return
+    }
+
     c := make(chan os.Signal, 1)
     signal.Notify(c, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGSEGV)
 	state := &ProgramState{
