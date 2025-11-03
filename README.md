@@ -8,7 +8,9 @@
 
 **MCServerConservationalist** has only been tested for the following versions:
 
-- 1.21.9
+- Fabric 1.21.9
+- Vanilla 1.20.4
+- Paper 1.20.4
 
 ## Features
 
