@@ -137,7 +137,7 @@ func startMinecraftServer(jarPath, ram string, state *ProgramState) error {
 	for {
 		conn, err := net.DialTimeout("tcp", fmt.Sprintf("localhost:%d", state.ServerProps.RconPort), 2*time.Second)
 		if err == nil {
-			fmt.Println("Server is ready!")
+			fmt.Println("\033[1;32mServer is ready!\033m[0m")
 			conn.Close()
 			break
 		}
@@ -167,7 +167,6 @@ func HandleLogin(state *ProgramState, r *bufio.Reader, w io.Writer) error {
 
     go func() {
 		atomic.StoreInt32(state.ServerRunning, 1)
-		fmt.Println("\033[1;32mPort closed?\033[0m")
         if err := startMinecraftServer("server.jar", "4G", state); err != nil {
             fmt.Println("\033[1;31mFailed to start server:", err, "\033[0m")
         }
