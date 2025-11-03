@@ -12,6 +12,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"sync/atomic"
 	"syscall"
 	"time"
@@ -19,19 +20,19 @@ import (
 	"github.com/disintegration/imaging"
 )
 
-func HandleStatus(conn io.ReadWriter, srvProps *ServerProps, config *YAMLConfig) error {
+func HandleStatus(conn io.ReadWriter, state *ProgramState) error {
 	// 3️⃣ Build JSON response
 	response := map[string]interface{}{
 		"version": map[string]interface{}{
-			"name":     config.ServerVersion,
+			"name":     state.YAMLConfig.ServerVersion,
 			"protocol": 767,                  // 1.21.1 protocol version (adjust if needed)
 		},
 		"description": map[string]interface{}{
-			"text": config.MOTD,
+			"text": state.YAMLConfig.MOTD,
 		},
 	}
 
-	imgFile, err := os.Open(config.SleepingIcon)
+	imgFile, err := os.Open(filepath.Join(state.ExeDir, state.YAMLConfig.SleepingIcon))
 	if err == nil {
 		defer imgFile.Close()
 		img, _, err := image.Decode(imgFile)
@@ -102,7 +103,8 @@ func sendLoginMessage(conn io.Writer, msg string) error {
 }
 
 func startMinecraftServer(jarPath, ram string, state *ProgramState) error {
-    cmd := exec.Command("java", "-Xmx"+ram, "-jar", jarPath, "--nogui")
+    cmd := exec.Command("java", "-Xmx"+ram, "-jar", filepath.Join(state.ExeDir, jarPath), "--nogui")
+	cmd.Dir = state.ExeDir
     cmd.Stdout = os.Stdout
     cmd.Stderr = os.Stderr
 
@@ -146,7 +148,7 @@ func HandleLogin(state *ProgramState, r *bufio.Reader, w io.Writer) error {
         return fmt.Errorf("login error: %v", err)
     }
 
-    if !CanWake(username, state.YAMLConfig) {
+    if !CanWake(username, state) {
         return sendLoginMessage(w, "You are not whitelisted!")
     }
 

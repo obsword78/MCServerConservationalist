@@ -6,6 +6,7 @@ import (
 )
 
 type ProgramState struct {
+    ExeDir        string
     YAMLConfig      *YAMLConfig
     ServerProps     *ServerProps
     ServerRunning   *int32        

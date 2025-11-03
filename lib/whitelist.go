@@ -3,6 +3,7 @@ package lib
 import (
 	"encoding/json"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -11,13 +12,13 @@ type WhitelistEntry struct {
 	Name string `json:"name"`
 }
 //====================================================
-func CanWake(player string, cfg *YAMLConfig) bool {
+func CanWake(player string, state *ProgramState) bool {
 	player = strings.ToLower(player)
-	if cfg.UseWhiteListJSON {
-		allowed := readWhitelist("whitelist.json")
+	if state.YAMLConfig.UseWhiteListJSON {
+		allowed := readWhitelist(filepath.Join(state.ExeDir, "whitelist.json"))
 		return allowed[player]
 	} else {
-		for _, name := range cfg.WakeWhiteList {
+		for _, name := range state.YAMLConfig.WakeWhiteList {
 			if strings.ToLower(name) == player {
 				return true
 			}

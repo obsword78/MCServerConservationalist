@@ -3,9 +3,11 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"net"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"sync/atomic"
 	"syscall"
 	"time"
@@ -15,11 +17,18 @@ import (
 type ProgramState = lib.ProgramState
 
 func main() {
+    exePath, err := os.Executable()
+    if err != nil {
+        log.Fatal(err)
+    }
+    exeDir := filepath.Dir(exePath)
+
     c := make(chan os.Signal, 1)
-    signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+    signal.Notify(c, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	state := &ProgramState{
-        YAMLConfig:  lib.LoadYAMLConfig("MCServerConservationalist.yaml"),
-        ServerProps: lib.LoadServerProps("server.properties"),
+        ExeDir:     exeDir,
+        YAMLConfig:  lib.LoadYAMLConfig(filepath.Join(exeDir, "MCServerConservationalist.yaml")),
+        ServerProps: lib.LoadServerProps(filepath.Join(exeDir, "server.properties")),
 		ServerRunning: new(int32),
     }
     atomic.StoreInt32(state.ServerRunning, 0)
@@ -42,6 +51,7 @@ func main() {
         os.Exit(0)
     }()
 
+    fmt.Println("\033[1;31mMCServerConservationalist CLI started. Please only close this program through CTRL + C to safely close ports.\033[0m")
 	for {
 		state.ServerStarted = make(chan struct{})
 
@@ -131,7 +141,7 @@ func handleConnection(state *ProgramState, conn net.Conn) {
 
     switch hs.NextState {
     case 1: // Status
-        if err := lib.HandleStatus(conn, state.ServerProps, state.YAMLConfig); err != nil {
+        if err := lib.HandleStatus(conn, state); err != nil {
             fmt.Println("Status error:", err)
         }
     case 2: // Login
