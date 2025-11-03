@@ -137,7 +137,7 @@ func startMinecraftServer(jarPath, ram string, state *ProgramState) error {
 	for {
 		conn, err := net.DialTimeout("tcp", fmt.Sprintf("localhost:%d", state.ServerProps.RconPort), 2*time.Second)
 		if err == nil {
-			fmt.Println("\033[1;32mServer is ready!\033m[0m")
+			fmt.Println("\033[1;32mServer is ready!\033[0m")
 			conn.Close()
 			break
 		}
