@@ -35,7 +35,7 @@ func main() {
 
     go func() {
         <-c
-        fmt.Println("Received interrupt signal, exiting connections...")
+        fmt.Println("\033[1;32mReceived interrupt signal, exiting connections...\033[0m")
 
         if state.PortListener != nil {
             state.PortListener.Close()
@@ -51,7 +51,7 @@ func main() {
         os.Exit(0)
     }()
 
-    fmt.Println("\033[1;31mMCServerConservationalist CLI started. Please only close this program through CTRL + C to safely close ports.\033[0m")
+    fmt.Println("\033[1;33mMCServerConservationalist CLI started. Please only close this program through CTRL + C to safely close ports.\033[0m")
 	for {
 		state.ServerStarted = make(chan struct{})
 
@@ -82,7 +82,7 @@ func WaitForValidTrigger(state *ProgramState) {
         time.Sleep(time.Second)
     }
 
-    fmt.Println("Server is sleeping, waiting for players to trigger server…")
+    fmt.Println("\033[1;32mServer is sleeping, waiting for players to trigger server…\033[0m")
     for {
         if atomic.LoadInt32(state.ServerRunning) == 1 {
             return
@@ -115,7 +115,7 @@ func MonitorIdle(ste *ProgramState) {
         if ste.RCONClient.GetPlayerCount() == 0  {
             idleSeconds++
             if idleSeconds >= ste.YAMLConfig.IdleTimeoutSeconds {
-                fmt.Println("Idle timeout reached → stopping server")
+                fmt.Println("\033[1;34mIdle timeout reached → stopping server\033[0m")
                 ste.RCONClient.StopServer()
                 break
             }
@@ -124,7 +124,7 @@ func MonitorIdle(ste *ProgramState) {
         }
         time.Sleep(time.Second)
         if atomic.LoadInt32(ste.ServerRunning) == 0 {
-            fmt.Println("Server stopped manually → ending idle monitor")
+            fmt.Println("\033[1;34mServer stopped manually → ending idle monitor\033[0m")
             break
         }
     }
