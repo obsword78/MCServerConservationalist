@@ -6,6 +6,8 @@
 
 ## Tutorial Video
 
+Click the embed below
+
 [![Watch the video](https://img.youtube.com/vi/jJmL9wqSiWA/hqdefault.jpg)](https://www.youtube.com/embed/jJmL9wqSiWA)
 
 ## Availability
