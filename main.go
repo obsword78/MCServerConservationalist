@@ -47,6 +47,7 @@ func main() {
             state.PortListener = nil
         }
         if state.RCONClient != nil {
+            state.RCONClient.StopServer()
             state.RCONClient.Close()
             state.RCONClient = nil
         }
