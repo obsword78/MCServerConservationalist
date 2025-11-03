@@ -24,7 +24,7 @@ func main() {
     exeDir := filepath.Dir(exePath)
 
     c := make(chan os.Signal, 1)
-    signal.Notify(c, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGSEGV)
+    signal.Notify(c, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	state := &ProgramState{
         ExeDir:     exeDir,
         YAMLConfig:  lib.LoadYAMLConfig(filepath.Join(exeDir, "MCServerConservationalist.yaml")),
