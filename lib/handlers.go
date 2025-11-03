@@ -108,6 +108,12 @@ func startMinecraftServer(jarPath, ram string, state *ProgramState) error {
     cmd.Stdout = os.Stdout
     cmd.Stderr = os.Stderr
 
+	if state.PortListener != nil {
+		fmt.Println("\033[1;32mPort closed.\033[0m")
+		state.PortListener.Close()
+		state.PortListener = nil
+	}
+
     state.MinecraftProcess = cmd
     if err := cmd.Start(); err != nil {
         return err
@@ -135,6 +141,11 @@ func startMinecraftServer(jarPath, ram string, state *ProgramState) error {
 			conn.Close()
 			break
 		}
+		if atomic.LoadInt32(state.ServerRunning) == 0 {
+			fmt.Println("\033[1;31mServer process ended before RCON became available\033[0m")
+			conn.Close()
+			break
+		}
 		time.Sleep(time.Second)
 	}
 	
@@ -156,14 +167,11 @@ func HandleLogin(state *ProgramState, r *bufio.Reader, w io.Writer) error {
 
     go func() {
 		atomic.StoreInt32(state.ServerRunning, 1)
+		fmt.Println("\033[1;32mPort closed?\033[0m")
         if err := startMinecraftServer("server.jar", "4G", state); err != nil {
-            fmt.Println("Failed to start server:", err)
+            fmt.Println("\033[1;31mFailed to start server:", err, "\033[0m")
         }
 
-		if state.PortListener != nil {
-			state.PortListener.Close()
-			state.PortListener = nil
-		}
         select {
         case state.ServerStarted <- struct{}{}:
         default:
