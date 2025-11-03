@@ -155,10 +155,10 @@ func HandleLogin(state *ProgramState, r *bufio.Reader, w io.Writer) error {
     sendLoginMessage(w, "Server starting… please reconnect in a moment")
 
     go func() {
+		atomic.StoreInt32(state.ServerRunning, 1)
         if err := startMinecraftServer("server.jar", "4G", state); err != nil {
             fmt.Println("Failed to start server:", err)
         }
-        atomic.StoreInt32(state.ServerRunning, 1)
 
 		if state.PortListener != nil {
 			state.PortListener.Close()

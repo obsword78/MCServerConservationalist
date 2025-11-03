@@ -97,6 +97,10 @@ func WaitForValidTrigger(state *ProgramState) {
             continue
         }
 
+        if atomic.LoadInt32(state.ServerRunning) == 1 {
+            return
+        }
+        
         go handleConnection(state, conn)
     }
 }
